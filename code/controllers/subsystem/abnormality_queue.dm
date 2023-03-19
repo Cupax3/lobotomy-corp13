@@ -1,5 +1,3 @@
-#define ABNORMALITY_DELAY 180 SECONDS
-
 SUBSYSTEM_DEF(abnormality_queue)
 	name = "Abnormality Queue"
 	flags = SS_KEEP_TIMING | SS_BACKGROUND
@@ -34,6 +32,7 @@ SUBSYSTEM_DEF(abnormality_queue)
 			possible_abnormalities[initial(abno.threat_level)] += abno
 	if(LAZYLEN(possible_abnormalities))
 		pick_abno()
+	addtimer(CALLBACK(src, .proc/HandleStartingAbnormalities), 180 SECONDS)
 	rooms_start = GLOB.abnormality_room_spawners.len
 	next_abno_spawn_time -= min(30, rooms_start * 0.05) MINUTES // 20 rooms will decrease wait time by 1 minute
 	..()
@@ -69,7 +68,7 @@ SUBSYSTEM_DEF(abnormality_queue)
 		else // Otherwise, if we run out of ALEPHs and WAWs, HEs are back on the menu
 			available_levels |= HE_LEVEL
 
-	if(!ispath(queued_abnormality) && LAZYLEN(possible_abnormalities))
+	if(!ispath(queued_abnormality) || !fucked_it_lets_rolled && LAZYLEN(possible_abnormalities))
 		pick_abno()
 
 	if(!LAZYLEN(GLOB.abnormality_room_spawners))
@@ -83,7 +82,6 @@ SUBSYSTEM_DEF(abnormality_queue)
 	if(fucked_it_lets_rolled)
 		for(var/obj/machinery/computer/abnormality_queue/Q in GLOB.abnormality_queue_consoles)
 			Q.ChangeLock(FALSE)
-		fucked_it_lets_rolled = FALSE
 
 /datum/controller/subsystem/abnormality_queue/proc/postspawn()
 	if(queued_abnormality)
